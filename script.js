@@ -3,6 +3,28 @@ const GOAL_CANS = 25;        // Total items needed to collect
 let currentCans = 0;         // Current number of items collected
 let gameActive = false;      // Tracks if game is currently running
 let spawnTimer;             // Holds the timer for spawning items
+let countdownTimer; // Holds the countdown timer interval
+
+//AUDIO
+let dripSound = new Audio('audio/drip.wav');
+let winSound = new Audio('audio/win.wav');
+let loseSound = new Audio('audio/lose.wav');
+
+// Set up click handler for the start button
+document.getElementById('start-game').addEventListener('click', startGame);
+document.getElementById('reset-game').addEventListener('click', resetGame);
+
+//CREATED HELPER FUNCTION FOR INCREMENTING SCORE
+let scoreCounter = document.getElementById('current-cans')
+function incrementScore() {
+  currentCans++;
+  scoreCounter.textContent = currentCans;
+  if (currentCans >= GOAL_CANS) {
+    endGameWin();
+  }
+}
+
+
 
 // Creates the 3x3 game grid where items will appear
 function createGrid() {
@@ -44,13 +66,27 @@ function spawnWaterCan() {
   // Add click handler to just remove the item
   wrapper.onclick = () => {
     if (gameActive) {
+      // ADDED LOGIC TO INCREMENT SCORE AND PLAY SOUND EFFECT
+      console.log('Can clicked');
+      dripSound.play();
+      incrementScore();
+      dripSound.play();
       wrapper.remove();
-    }
   };
+}
   
   // Add the wrapped item to the random cell
   randomCell.appendChild(wrapper);
 }
+
+// ADDED CODE TO GET THE TIMER
+let timer = document.getElementById('timer');
+
+// Get the reset button
+const resetButton = document.getElementById('reset-game');
+
+// Get the start button
+const startButton = document.getElementById('start-game');
 
 // Initializes and starts a new game
 function startGame() {
@@ -58,12 +94,76 @@ function startGame() {
   gameActive = true;
   createGrid();
   spawnTimer = setInterval(spawnWaterCan, 1000);
+
+  // Show the reset button and hide the start button
+  resetButton.style.display = 'block';
+  startButton.style.display = 'none';
+
+  // Initialize countdown timer
+  let timeLeft = 30;
+  timer.textContent = timeLeft;
+  countdownTimer = setInterval(() => {
+    timeLeft--;
+    timer.textContent = timeLeft;
+    if (timeLeft <= 0) {
+      clearInterval(countdownTimer);
+      endGameLose();
+    }
+  }, 1000);
 }
 
-function endGame() {
+// RESET GAME FUNCTION
+
+function resetGame() {
+  console.log('Resetting game...');
+  gameActive = true;
+  clearInterval(spawnTimer);
+  clearInterval(countdownTimer); // Clear the countdown timer
+  currentCans = 0;
+  scoreCounter.textContent = currentCans;
+  spawnTimer = setInterval(spawnWaterCan, 1000);
+  // timer.textContent = '';
+  // resetButton.style.display = 'none';
+  // createGrid();
+  // Initialize countdown timer
+  let timeLeft = 30;
+  timer.textContent = timeLeft;
+  countdownTimer = setInterval(() => {
+    timeLeft--;
+    timer.textContent = timeLeft;
+    if (timeLeft <= 0) {
+      clearInterval(countdownTimer);
+      endGameLose();
+    }
+  }, 1000);
+}
+
+// UPDATED CODE SO THERE IS A LOSING VS WINNING OPTION
+function endGameLose() {
+  loseSound.play();
   gameActive = false;
   clearInterval(spawnTimer);
+  clearInterval(countdownTimer); // Clear the countdown timer
+  alert('Time is up! You lost the game.');
+  // Hide the reset button
+  startButton.style.display = 'none';
 }
 
-// Set up click handler for the start button
-document.getElementById('start-game').addEventListener('click', startGame);
+function endGameWin() {
+  winSound.play();
+  gameActive = false;
+  clearInterval(spawnTimer);
+  clearInterval(countdownTimer); // Clear the countdown timer
+  alert('Congratulations! You completed the quest!');
+  // Hide the reset button
+  startButton.style.display = 'none';
+}
+
+
+
+// ADDITIONAL CODE
+
+//Logic for user to click on the can and increment the score
+
+
+
